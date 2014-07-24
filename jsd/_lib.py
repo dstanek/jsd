@@ -1,0 +1,100 @@
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+import six
+
+
+class _ObjectMeta(type):
+
+    def __new__(meta, name, bases, dct):
+        new_dct = {
+            'properties': {},
+            'required_properties': [],
+            'required': False,
+        }
+
+        for name, obj in dct.items():
+            if not isinstance(obj, _Type):
+                new_dct[name] = obj
+            else:
+                new_dct['properties'][name] = obj
+                if obj.required:
+                    new_dct['required_properties'].append(name)
+
+        return super(_ObjectMeta, meta).__new__(meta, name, bases, new_dct)
+
+
+class _Type(object):
+
+    def __init__(self, required=False, **kwargs):
+        self.required = required
+
+    def json(self):
+        if self.required:
+            return {'type': self.__class__.__name__.lower()}
+        else:
+            return {'type': [self.__class__.__name__.lower(), 'null']}
+
+
+@six.add_metaclass(_ObjectMeta)
+class Object(_Type):
+    additional_properties = False
+
+    def json(self):
+        d = {
+            'properties': dict((name, obj.json())
+                               for name, obj in self.properties.items()),
+        }
+        if self.required:
+            d['type'] = 'object'
+        else:
+            d['type'] = ['object', 'null']
+        if self.required_properties:
+            d['required'] = self.required_properties
+        return d
+
+
+class String(_Type):
+    pass
+
+
+class Array(_Type):
+
+    def __init__(self, item_type=None, required=False, min_items=0):
+        self.item_type = item_type
+        self.required = required
+        self.min_items = min_items
+
+    def json(self):
+        data = super(Array, self).json()
+        data['minItems'] = self.min_items
+        if self.item_type:
+            data['items'] = create_if_needed(self.item_type).json()
+        return data
+
+
+class Boolean(_Type):
+    pass
+
+
+class OneOf(_Type):
+    def __init__(self, *types, **kwargs):
+        self.required = kwargs.pop('required', False)
+        self.types = [create_if_needed(t) for t in types]
+
+    def json(self):
+        return {'oneOf': [t.json() for t in self.types]}
+        # FIXME: does type: object also need to be returned?
+
+
+def create_if_needed(cls_or_obj):
+    return cls_or_obj() if isinstance(cls_or_obj, type) else cls_or_obj
