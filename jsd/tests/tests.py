@@ -14,7 +14,8 @@ class TestTypes(object):
         jsonschema.validate(value, schema)
 
     def test_expected_schema(self):
-        self.assertEqual(self.expected_schema, self.schema)
+        self.assertEqual(self._normalize_schema(self.expected_schema),
+                         self._normalize_schema(self.schema))
 
     def test_valid_input(self):
         for input in self.valid_input:
@@ -26,6 +27,19 @@ class TestTypes(object):
                               self.assert_jsonshema_works,
                               input,
                               self.schema)
+
+    def _normalize_schema(self, schema):
+        """Recursively sort all lists in a schema.
+
+        Since many of the data structures used in jsd are dictionaries we
+        can't rely on the lists to be in order.
+
+        """
+        for key in list(schema.keys()):
+            if isinstance(schema[key], list):
+                schema[key].sort(key=str)
+            elif isinstance(schema[key], dict):
+                self._normalize_schema(schema[key])
 
 
 class TestStringType(TestTypes, unittest.TestCase):
