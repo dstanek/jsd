@@ -20,5 +20,5 @@ setup(
     url='https://github.com/dstanek/jsd',
     download_url='https://github.com/dstanek/jsd/tarball/0.1',
     install_requires=read_requirements('requirements.txt'),
-    test_requires=read_requirements('test-requirements.txt')
+    tests_require=read_requirements('test-requirements.txt')
 )
