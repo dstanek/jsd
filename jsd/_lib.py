@@ -16,21 +16,20 @@ import six
 class _ObjectMeta(type):
 
     def __new__(meta, name, bases, dct):
-        new_dct = {
+        dct.update({
             'properties': {},
             'required_properties': [],
             'required': False,
-        }
+        })
 
-        for name, obj in dct.items():
-            if not isinstance(obj, _Type):
-                new_dct[name] = obj
-            else:
-                new_dct['properties'][name] = obj
+        for _name, obj in list(dct.items()):
+            if isinstance(obj, _Type):
+                del dct[_name]
+                dct['properties'][_name] = obj
                 if obj.required:
-                    new_dct['required_properties'].append(name)
+                    dct['required_properties'].append(_name)
 
-        return super(_ObjectMeta, meta).__new__(meta, name, bases, new_dct)
+        return super(_ObjectMeta, meta).__new__(meta, name, bases, dct)
 
 
 class _Type(object):
