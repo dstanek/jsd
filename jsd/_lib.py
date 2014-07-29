@@ -39,9 +39,9 @@ class _Type(object):
 
     def json(self):
         if self.required:
-            return {'type': self.__class__.__name__.lower()}
+            return {'type': self.type}
         else:
-            return {'type': [self.__class__.__name__.lower(), 'null']}
+            return {'type': [self.type, 'null']}
 
 
 @six.add_metaclass(_ObjectMeta)
@@ -63,10 +63,11 @@ class Object(_Type):
 
 
 class String(_Type):
-    pass
+    type = 'string'
 
 
 class Array(_Type):
+    type = 'array'
 
     def __init__(self, item_type=None, required=False, min_items=0):
         self.item_type = item_type
@@ -82,7 +83,7 @@ class Array(_Type):
 
 
 class Boolean(_Type):
-    pass
+    type = 'boolean'
 
 
 class OneOf(_Type):
