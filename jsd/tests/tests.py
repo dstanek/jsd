@@ -147,6 +147,38 @@ class TestObjectType(TestTypes, unittest.TestCase):
     )
 
 
+class TestRequiredObjectType(TestTypes, unittest.TestCase):
+
+    @property
+    def schema(self):
+        class Inner(jsd.Object):
+            s = jsd.String(required=True)
+
+        class Outer(jsd.Object):
+            inner = Inner(required=True)
+
+        return Outer().json()
+
+    expected_schema = {
+        'type': 'object',
+        'required': ['inner'],
+        'properties': {
+            'inner': {
+                'type': 'object',
+                'required': ['s'],
+                'properties': {
+                    's': {'type': 'string'},
+                },
+            },
+        },
+    }
+
+    invalid_input = (
+        {'inner': {}},
+        {'inner': {'s': None}},
+    )
+
+
 class Email(jsd.Object):
     service = jsd.String()
     value = jsd.String()
