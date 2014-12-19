@@ -13,25 +13,39 @@
 import six
 
 
-class _ObjectMeta(type):
+class _TypeMeta(type):
 
     def __new__(meta, name, bases, dct):
-        dct.update({
-            'properties': {},
-            'required_properties': [],
-            'required': False,
-        })
+        dct['_keywords'] = []
+        for name, obj in six.iteritems(dct):
+            if not name.startswith('__') and not callable(obj):
+                print name
+                dct['_keywords'].append(name)
+
+        return super(_TypeMeta, meta).__new__(meta, name, bases, dct)
+
+
+class _ObjectMeta(_TypeMeta):
+
+    def __new__(meta, name, bases, dct):
+        properties = {}
+        required_properties = []
 
         for _name, obj in list(dct.items()):
             if isinstance(obj, _Type):
                 del dct[_name]
-                dct['properties'][_name] = obj
+                properties[_name] = obj
                 if obj.required:
-                    dct['required_properties'].append(_name)
+                    required_properties.append(_name)
 
-        return super(_ObjectMeta, meta).__new__(meta, name, bases, dct)
+        #dct.setdefault('required', False)
+        cls = super(_ObjectMeta, meta).__new__(meta, name, bases, dct)
+        cls.properties = properties
+        cls.required_properties = required_properties
+        return cls
 
 
+@six.add_metaclass(_TypeMeta)
 class _Type(object):
 
     def __init__(self, required=False, **kwargs):
@@ -64,6 +78,11 @@ class Object(_Type):
 
 class String(_Type):
     type = 'string'
+
+    min_len = None
+    max_len = None
+    format = None
+    pattern = None
 
 
 class Array(_Type):
