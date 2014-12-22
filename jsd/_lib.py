@@ -16,11 +16,10 @@ import six
 class _TypeMeta(type):
 
     def __new__(meta, name, bases, dct):
-        dct['_keywords'] = []
+        dct['_keywords'] = {}
         for name, obj in six.iteritems(dct):
             if not name.startswith('__') and not callable(obj):
-                print name
-                dct['_keywords'].append(name)
+                dct['_keywords'][name] = obj
 
         return super(_TypeMeta, meta).__new__(meta, name, bases, dct)
 
@@ -52,10 +51,18 @@ class _Type(object):
         self.required = required
 
     def json(self):
+        obj_json = {}
         if self.required:
-            return {'type': self.type}
+            obj_json['type'] = self.type.lower()
         else:
-            return {'type': [self.type, 'null']}
+            obj_json['type'] = [self.type.lower(), 'null']
+
+        for k, v in six.iteritems(self._keywords):
+            if k == '_keywords':
+                continue
+            obj_json[k] = v
+
+        return obj_json
 
 
 @six.add_metaclass(_ObjectMeta)

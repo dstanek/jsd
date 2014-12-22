@@ -349,3 +349,30 @@ class TestOneOfWithNotRequiredTypes(TestTypes, unittest.TestCase):
     invalid_input = (
         {'thing': 1},
     )
+
+
+class TestClassProperties(TestTypes, unittest.TestCase):
+    class Example(jsd.String):
+        minLength = 1
+        maxLength = 255
+        pattern = '[a-zA-Z0-9+.-]+:.+'
+
+    schema = Example(required=True).json()
+    expected_schema = {
+        'type': 'string',
+        'minLength': 1,
+        'maxLength': 255,
+        'pattern': '[a-zA-Z0-9+.-]+:.+'
+    }
+    valid_input = (
+        {'www.example.com'},
+        {'127.0.0.1:5000'},
+    )
+
+    long_string = 256 * 'a'
+    invalid_input = (
+        {''},
+        {},
+        {long_string},
+    )
+
