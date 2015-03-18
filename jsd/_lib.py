@@ -11,6 +11,7 @@
 # under the License.
 
 import six
+import os
 
 
 class _ObjectMeta(type):
@@ -64,6 +65,7 @@ class Object(_Type):
 
 class String(_Type):
     type = 'string'
+    what = 'yep'
 
 
 class Array(_Type):
@@ -98,3 +100,6 @@ class OneOf(_Type):
 
 def create_if_needed(cls_or_obj):
     return cls_or_obj() if isinstance(cls_or_obj, type) else cls_or_obj
+
+class Sweet(object):
+    pass

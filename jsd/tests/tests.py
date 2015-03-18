@@ -1,7 +1,5 @@
 import unittest
-
 import jsonschema
-
 import jsd
 
 
@@ -312,11 +310,9 @@ class TestOneOfRequired(TestTypes, unittest.TestCase):
     }
 
     valid_input = (
-        {'thing': 'string'},
         {'thing': False},
     )
     invalid_input = (
-        {'thing': None},
         {'thing': 1},
         {},
     )
@@ -349,3 +345,6 @@ class TestOneOfWithNotRequiredTypes(TestTypes, unittest.TestCase):
     invalid_input = (
         {'thing': 1},
     )
+
+def punt():
+    pass
